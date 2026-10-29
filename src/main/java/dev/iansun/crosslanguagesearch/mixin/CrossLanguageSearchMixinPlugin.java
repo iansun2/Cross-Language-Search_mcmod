@@ -11,8 +11,8 @@ import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 import net.neoforged.fml.loading.LoadingModList;
 
 /**
- * 每個 Mixin 只在目標模組有安裝時才套用。
- * 沒有列在這裡的 Mixin 只依賴 Minecraft 本身，永遠套用。
+ * Each mixin is applied only when its target mod is installed.
+ * Mixins not listed here depend only on Minecraft itself and are always applied.
  */
 public class CrossLanguageSearchMixinPlugin implements IMixinConfigPlugin {
     private static final String BASE = "dev.iansun.crosslanguagesearch.mixin.";

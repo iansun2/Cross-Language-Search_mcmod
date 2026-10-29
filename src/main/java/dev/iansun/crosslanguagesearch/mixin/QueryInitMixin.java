@@ -13,7 +13,7 @@ import dev.emi.emi.search.TooltipQuery;
 import dev.iansun.crosslanguagesearch.SearchText;
 
 /**
- * 查詢端：使用者輸入的文字經過與索引相同的正規化。
+ * Query side: user input goes through the same normalization as the index.
  */
 @Mixin(value = { NameQuery.class, TooltipQuery.class, ModQuery.class, AliasQuery.class }, remap = false)
 public abstract class QueryInitMixin {

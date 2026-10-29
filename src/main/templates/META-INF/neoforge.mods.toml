@@ -13,7 +13,7 @@ description='''
 Cross-language search for EMI, Refined Storage and more: search Chinese names and tooltips in English, and Traditional / Simplified Chinese interchangeably.
 跨語言搜尋：可用英文搜尋中文名稱與工具提示，繁體、簡體中文互通。
 '''
-# 純客戶端模組，不影響伺服器連線
+# Client-only mod; does not affect server connections
 displayTest="IGNORE_ALL_VERSION"
 
 [[mixins]]
@@ -33,7 +33,7 @@ config="${mod_id}.mixins.json"
     ordering="NONE"
     side="CLIENT"
 
-# 以下全部是選用：有安裝才啟用對應功能，都沒裝時本模組不做任何事
+# Everything below is optional: features turn on only for installed mods; with none installed this mod does nothing
 [[dependencies.${mod_id}]]
     modId="emi"
     type="optional"

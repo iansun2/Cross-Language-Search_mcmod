@@ -15,7 +15,7 @@ import dev.emi.emi.search.NameQuery;
 import dev.emi.emi.search.TooltipQuery;
 import dev.iansun.crosslanguagesearch.SearchDebug;
 
-/** 診斷：每個子查詢從索引命中了幾個物品 */
+/** Diagnostics: how many items each sub-query matched in the index */
 @Mixin(value = { NameQuery.class, TooltipQuery.class, ModQuery.class }, remap = false)
 public abstract class QueryDebugMixin {
     @Shadow

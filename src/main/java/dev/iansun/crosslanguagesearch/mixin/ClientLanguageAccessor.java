@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 import net.minecraft.client.resources.language.ClientLanguage;
 
-/** 讀取目前語言的完整翻譯表，用來建立中英反查表 */
+/** Reads the full translation table of a language, used to build the reverse lookup */
 @Mixin(ClientLanguage.class)
 public interface ClientLanguageAccessor {
     @Accessor("storage")

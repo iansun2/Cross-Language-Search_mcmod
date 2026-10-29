@@ -12,7 +12,7 @@ import dev.iansun.crosslanguagesearch.SearchText;
 import net.minecraft.network.chat.Component;
 
 /**
- * Apothic Enchanting 附魔圖書館的篩選欄：附魔名稱附上英文，兩邊都經過 fold。
+ * Apothic Enchanting library filter: append English to enchantment names, and fold both sides.
  */
 @Mixin(targets = "dev.shadowsoffire.apothic_enchanting.library.EnchLibraryScreen", remap = false)
 public abstract class EnchLibraryScreenMixin {

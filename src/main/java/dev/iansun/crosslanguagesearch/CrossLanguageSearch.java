@@ -29,12 +29,12 @@ public class CrossLanguageSearch {
         }
         LOGGER.info("Cross-Language-Search active, detected: {}", found);
 
-        // 語言表在資源載入時建立，不依賴 EMI，RS / 附魔圖書館 / 目錄也用得到
+        // Language tables are built on resource reload, independent of EMI, so RS / the enchanting library / the catalog can use them too
         modBus.addListener(RegisterClientReloadListenersEvent.class, event ->
                 event.registerReloadListener((ResourceManagerReloadListener) manager -> SearchText.reloadSecondaryLanguage()));
 
         if (ModList.get().isLoaded("emi")) {
-            // 動態工具提示偵測只服務 EMI；放在獨立類別裡，沒裝 EMI 時不會載入任何 EMI 類別
+            // Dynamic tooltip detection only serves EMI; it lives in a separate class so no EMI class is loaded when EMI is absent
             EmiIntegration.init();
         }
     }

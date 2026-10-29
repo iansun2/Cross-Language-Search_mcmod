@@ -18,7 +18,7 @@ import dev.iansun.crosslanguagesearch.SearchText;
 import net.minecraft.network.chat.Component;
 
 /**
- * 建索引端：每段文字附上英文版本，並把小寫轉換換成完整的正規化。
+ * Index side: append other-language variants to every text, and replace lowercasing with full normalization.
  */
 @Mixin(value = EmiSearch.class, remap = false)
 public abstract class EmiSearchMixin {
@@ -29,13 +29,13 @@ public abstract class EmiSearchMixin {
         DynamicTooltips.requestReset();
     }
 
-    /** 名稱、工具提示、註冊別名的 Component 都在這裡轉成字串 */
+    /** Names, tooltips and registry aliases are all turned into strings here */
     @WrapOperation(method = "bake", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/Component;getString()Ljava/lang/String;"))
     private static String cls$appendSecondary(Component component, Operation<String> original) {
         return SearchText.withSecondary(component, original.call(component));
     }
 
-    /** 所有放進索引的字串都會呼叫 toLowerCase，改成 fold 讓繁簡、全半形一致 */
+    /** Every indexed string goes through toLowerCase; replacing it with fold unifies Traditional/Simplified and full/half-width */
     @WrapOperation(method = "bake", at = @At(value = "INVOKE", target = "Ljava/lang/String;toLowerCase()Ljava/lang/String;"))
     private static String cls$fold(String s, Operation<String> original) {
         String folded = SearchText.fold(s);

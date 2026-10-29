@@ -26,27 +26,27 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.fml.loading.FMLPaths;
 
 /**
- * 偵測「工具提示會隨玩家狀態改變」的物品，讓 EMI 對它們改用即時比對。
+ * Detects items whose tooltips change with player state, and makes EMI match them live.
  * <p>
- * 做法：在主執行緒上，每個 tick 只花固定時間，輪流重算物品的工具提示並記下雜湊；
- * 同一個物品前後兩次不同，就標記為動態。標記結果會存檔，下次進遊戲一開始就直接即時比對。
+ * On the main thread, a fixed time budget per tick is spent re-computing tooltips round-robin and recording a hash;
+ * an item whose hash differs between passes is marked dynamic. Results are saved, so they apply from the start of the next session.
  */
 public final class DynamicTooltips {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    /** 每個 tick 最多花在掃描上的時間 */
+    /** Maximum scanning time per tick */
     private static final long BUDGET_NANOS = 1_000_000L;
-    /** 一輪掃完後，隔多少 tick 再開始下一輪 */
+    /** Ticks to wait after a full pass before starting the next one */
     private static final int PASS_INTERVAL_TICKS = 20 * 30;
-    /** 一輪內超過這個數量同時改變，視為全域狀態變化而非個別物品 */
+    /** More changes than this in one pass are treated as a global state change, not per-item changes */
     private static final int MAX_CHANGES_PER_PASS = 24;
 
     private static final Path FILE = FMLPaths.CONFIGDIR.get().resolve("crosslanguagesearch-dynamic.txt");
 
-    /** 以物品 ID 記錄，執行緒安全，EMI 的搜尋執行緒會讀取 */
+    /** Keyed by item ID; thread-safe because EMI's search thread reads it */
     private static final Set<ResourceLocation> DYNAMIC = ConcurrentHashMap.newKeySet();
 
-    // 以下只在主執行緒使用
+    // Everything below is used on the main thread only
     private static final Map<EmiStack, Integer> baseline = new IdentityHashMap<>();
     private static List<EmiStack> scanning = List.of();
     private static int cursor;
@@ -57,14 +57,14 @@ public final class DynamicTooltips {
 
     private DynamicTooltips() {}
 
-    /** EMI 搜尋執行緒呼叫：這個物品是否要改用即時比對 */
+    /** Called from EMI's search thread: whether this item should be matched live */
     public static boolean isDynamic(EmiStack stack) {
         if (DYNAMIC.isEmpty()) return false;
         ResourceLocation id = stack.getId();
         return id != null && DYNAMIC.contains(id);
     }
 
-    /** EMI 重新建索引時呼叫（建索引執行緒），下個 tick 由主執行緒重置 */
+    /** Called when EMI rebuilds its index (on the bake thread); the main thread resets on the next tick */
     public static void requestReset() {
         resetRequested = true;
     }
@@ -96,12 +96,12 @@ public final class DynamicTooltips {
         }
     }
 
-    /** 主執行緒每個 client tick 呼叫 */
+    /** Called on the main thread every client tick */
     public static void tick() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
 
-        // 進階工具提示（F3+H）切換會讓所有物品的工具提示一起變，重新建立基準
+        // Toggling advanced tooltips (F3+H) changes every tooltip at once, so rebuild the baseline
         boolean advanced = mc.options.advancedItemTooltips;
         if (advanced != lastAdvanced) {
             lastAdvanced = advanced;
@@ -121,7 +121,7 @@ public final class DynamicTooltips {
             cooldown--;
             return;
         }
-        // 很多模組按住 Shift / Ctrl / Alt 會顯示更多資訊，這時的工具提示不能拿來比較
+        // Many mods show extra info while Shift / Ctrl / Alt is held; tooltips captured then are not comparable
         if (Screen.hasShiftDown() || Screen.hasControlDown() || Screen.hasAltDown()) return;
 
         long deadline = System.nanoTime() + BUDGET_NANOS;
@@ -142,8 +142,8 @@ public final class DynamicTooltips {
     }
 
     /**
-     * 一輪掃完才決定要不要標記。單一物品的狀態變化通常只影響少數物品；
-     * 一次變很多代表是全域狀態改變（切換按鍵、設定、維度等），這時全部忽略並重新建立基準。
+     * Marking is decided only after a full pass. A per-item state change usually affects few items;
+     * many changes at once mean a global state change (key held, settings, dimension...), so ignore them and rebuild the baseline.
      */
     private static void finishPass() {
         cursor = 0;
@@ -166,11 +166,11 @@ public final class DynamicTooltips {
         candidates.clear();
         if (!added) return;
         save();
-        // 讓目前的搜尋結果立刻反映
+        // Refresh the current search results right away
         try {
             EmiSearch.update();
         } catch (Throwable ignored) {
-            // EMI 介面還沒初始化時沒有搜尋欄，忽略即可
+            // EMI has no search widget before its screen is initialized; safe to ignore
         }
     }
 

@@ -8,12 +8,12 @@ tasks.named('wrapper', Wrapper).configure {
     distributionType = Wrapper.DistributionType.BIN
 }
 
-// CI 發版時用 -Pmod_version=x.y.z 覆寫
+// CI overrides this with -Pmod_version=x.y.z when releasing
 version = mod_version
 group = mod_group_id
 
 repositories {
-    // EMI、Refined Storage 從 Modrinth Maven 取得，只在編譯時使用，不會打包進 jar
+    // EMI and Refined Storage come from Modrinth Maven; compile-only, never bundled into the jar
     exclusiveContent {
         forRepository {
             maven {
@@ -62,12 +62,12 @@ configurations {
 }
 
 dependencies {
-    // 全部是選用相容：只在編譯時參考，執行時沒裝就不套用對應的 Mixin。
-    // Apothic Enchanting、Reverie Foundry、JECh 的 Mixin 以類別名稱字串指定目標，不需要編譯依賴。
+    // All integrations are optional: referenced at compile time only, and the matching mixins are skipped when the mod is absent.
+    // Apothic Enchanting, Reverie Foundry and JECh mixins target classes by name, so they need no compile dependency.
     compileOnly "maven.modrinth:emi:${emi_version}"
     compileOnly "maven.modrinth:refined-storage:${refinedstorage_version}"
 
-    // 開發環境執行 runClient 時一併載入 EMI
+    // Load EMI as well when using runClient in the dev environment
     localRuntime "maven.modrinth:emi:${emi_version}"
 }
 
@@ -91,7 +91,7 @@ sourceSets.main.resources.srcDir generateModMetadata
 neoForge.ideSyncTask generateModMetadata
 
 jar {
-    // 授權檔一起打包，方便模組包作者確認
+    // Ship the license files inside the jar for modpack authors
     from("LICENSE") { rename { "LICENSE_${mod_id}" } }
     from("NOTICE") { rename { "NOTICE_${mod_id}" } }
 }

@@ -9,8 +9,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import dev.iansun.crosslanguagesearch.SearchText;
 
 /**
- * Reverie Foundry 目錄（材料、特性）的搜尋。
- * 只在我們比對成功時提前回傳 true，否則交回原本的邏輯（例如裝了 JECh 時的拼音搜尋）。
+ * Reverie Foundry catalog search (materials and traits).
+ * Returns true early only when we match; otherwise the original logic runs (e.g. pinyin search when JECh is installed).
  */
 @Mixin(targets = "com.drowningfish233.reveriefoundry.Utils.SearchUtils", remap = false)
 public abstract class ReverieSearchUtilsMixin {

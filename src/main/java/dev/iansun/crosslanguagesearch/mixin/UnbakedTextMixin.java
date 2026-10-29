@@ -12,7 +12,7 @@ import dev.iansun.crosslanguagesearch.SearchText;
 import net.minecraft.network.chat.Component;
 
 /**
- * 即時比對時同樣附上英文版本。
+ * Append other-language variants during live matching as well.
  */
 @Mixin(value = { NameQuery.class, TooltipQuery.class }, remap = false)
 public abstract class UnbakedTextMixin {

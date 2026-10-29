@@ -10,10 +10,10 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 
 /**
- * JECh 用 PinIn 的 TreeSearcher 取代 EMI 的 SuffixArray，但 TreeSearcher 內部的 Accelerator 快取沒有同步。
- * EMI 每次輸入都開新的搜尋執行緒，前一個還沒跑完時兩者同時搜尋，就會拋出
- * 「IndexSet$Storage.get(int) because "data" is null」並讓整次搜尋沒有結果。
- * 這裡讓所有 FakeArray 的讀寫共用一把鎖。
+ * JECh replaces EMI's SuffixArray with PinIn's TreeSearcher, whose internal Accelerator cache is not synchronized.
+ * EMI starts a new search thread on every keystroke; when the previous one is still running, both search at once and throw
+ * "IndexSet$Storage.get(int) because "data" is null", leaving the whole search with no results.
+ * Here all FakeArray reads and writes share one lock.
  */
 @Mixin(targets = "me.towdium.jecharacters.utils.FakeArray", remap = false)
 public abstract class JechFakeArrayMixin {

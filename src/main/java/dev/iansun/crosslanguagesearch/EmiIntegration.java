@@ -4,8 +4,8 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
 /**
- * EMI 相關的初始化。只有在確認 EMI 已安裝後才會被呼叫，
- * 所以 {@link DynamicTooltips} 這類引用 EMI 類別的程式不會在沒裝 EMI 時被載入。
+ * EMI-specific initialization. Only called after EMI is confirmed to be installed,
+ * so code referencing EMI classes, such as {@link DynamicTooltips}, is never loaded without EMI.
  */
 final class EmiIntegration {
     private EmiIntegration() {}

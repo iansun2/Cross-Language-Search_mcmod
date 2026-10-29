@@ -20,8 +20,8 @@ import com.refinedmods.refinedstorage.common.grid.view.ItemGridResource;
 import dev.iansun.crosslanguagesearch.SearchText;
 
 /**
- * Refined Storage 網格搜尋：查詢與物品名稱都經過 normalize()，改成 fold 就能繁簡互查；
- * 名稱另外附上英文反查結果。
+ * Refined Storage grid search: both the query and item names go through normalize(); folding there unifies Traditional/Simplified.
+ * Names also get their reverse-lookup translation appended.
  */
 @Mixin(value = GridQueryParser.class, remap = false)
 public abstract class RsGridQueryParserMixin {
@@ -45,7 +45,7 @@ public abstract class RsGridQueryParserMixin {
         return result;
     }
 
-    /** $ 工具提示搜尋：直接從物品的文字元件組出英文，不依賴反查表 */
+    /** $ tooltip search: render English straight from the item's components instead of the reverse lookup */
     @Inject(method = "lambda$attributeMatch$7", at = @At("HEAD"), cancellable = true)
     private static void cls$tooltip(Set<GridResourceAttributeKey> keys, String query, ResourceRepository<?> repository,
             GridResource resource, CallbackInfoReturnable<Boolean> cir) {
@@ -54,7 +54,7 @@ public abstract class RsGridQueryParserMixin {
         if (!q.isEmpty() && SearchText.tooltipSecondary(item.getItemStack()).contains(q)) cir.setReturnValue(true);
     }
 
-    /** @、#、$ 屬性搜尋（模組、標籤、工具提示）。參數順序：查詢、屬性值 */
+    /** @, #, $ attribute search (mod, tag, tooltip). Parameter order: query, attribute value */
     @Inject(method = "lambda$attributeMatch$6", at = @At("HEAD"), cancellable = true)
     private static void cls$attribute(String query, String value, CallbackInfoReturnable<Boolean> cir) {
         if (SearchText.plainContains(value, query)) cir.setReturnValue(true);

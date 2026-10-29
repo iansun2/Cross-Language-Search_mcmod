@@ -10,12 +10,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * 從兩份語言表建立的雙向反查：給一段已翻譯的純文字，找出另一種語言的版本。
+ * Two-way lookup built from two language tables: given already-translated plain text, find its version in the other language.
  * <ul>
- * <li>整句：fold(中文) ↔ fold(英文)，兩個方向都收錄</li>
- * <li>格式字串：例如「 - 量子化：%s%%」，用前綴找候選範本，再用正規表示式取出參數代入英文</li>
+ * <li>Exact: fold(Chinese) &lt;-&gt; fold(English), stored in both directions</li>
+ * <li>Format strings, e.g. " - 量子化：%s%%": candidates are found by prefix, then a regex extracts the arguments and substitutes them into the English template</li>
  * </ul>
- * 建好之後不再修改，可在多執行緒下讀取。
+ * Immutable once built, so it can be read from multiple threads.
  */
 final class ReverseIndex {
     static final ReverseIndex EMPTY = new ReverseIndex(Map.of(), Map.of());
@@ -69,7 +69,7 @@ final class ReverseIndex {
         return new ReverseIndex(exact, templates);
     }
 
-    /** 查一行已 fold、已 trim 的文字，回傳另一種語言（已 fold），查不到回傳 null */
+    /** Looks up one folded, trimmed line; returns the other language (folded), or null if not found */
     String lookupLine(String line) {
         String hit = exact.get(line);
         if (hit != null) return hit;
@@ -86,7 +86,7 @@ final class ReverseIndex {
         return null;
     }
 
-    /** 參數本身也可能是翻譯過的文字（例如附魔名稱），能查到就一起換 */
+    /** Arguments may themselves be translated text (e.g. an enchantment name); translate them too when possible */
     String lookupArg(String arg) {
         String hit = exact.get(arg.trim());
         if (hit == null) return arg;
@@ -98,7 +98,7 @@ final class ReverseIndex {
         final String prefix;
         final Pattern pattern;
         final int[] argOrder;
-        final List<Object> english; // String 為字面文字，Integer 為參數索引
+        final List<Object> english; // String = literal text, Integer = argument index
 
         private Template(String prefix, Pattern pattern, int[] argOrder, List<Object> english) {
             this.prefix = prefix;
@@ -139,7 +139,7 @@ final class ReverseIndex {
                     order.stream().mapToInt(Integer::intValue).toArray(), english);
         }
 
-        /** 拆成字面文字與參數索引；遇到不支援的格式回傳 null */
+        /** Splits into literal text and argument indices; returns null for unsupported specifiers */
         private static List<Object> tokenize(String format) {
             List<Object> parts = new ArrayList<>();
             Matcher m = FORMAT.matcher(format);

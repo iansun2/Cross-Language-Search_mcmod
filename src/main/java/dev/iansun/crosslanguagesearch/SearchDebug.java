@@ -16,7 +16,7 @@ import com.mojang.logging.LogUtils;
 import net.neoforged.fml.loading.FMLPaths;
 
 /**
- * 搜尋診斷記錄。只有在 config/crosslanguagesearch-debug.txt 存在時才輸出，平常不影響效能。
+ * Search diagnostics. Only active when config/crosslanguagesearch-debug.txt exists; no cost otherwise.
  */
 public final class SearchDebug {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -24,7 +24,7 @@ public final class SearchDebug {
 
     public static final boolean ENABLED = Files.exists(FLAG);
 
-    /** 開關檔裡每一行是一個「探針」字詞：建索引時，含有這些字的索引字串會被記錄下來 */
+    /** Each line of the flag file is a probe word; index strings containing it are logged during indexing */
     private static final List<String> PROBES = loadProbes();
     private static final int PROBE_LIMIT = 15;
     private static final Map<String, AtomicInteger> PROBE_COUNTS = new ConcurrentHashMap<>();
@@ -72,8 +72,8 @@ public final class SearchDebug {
         log("Search \"{}\" finished: {} results in {} ms", searchQuery, results, (System.nanoTime() - searchStart) / 1_000_000);
     }
 
-    /** 給診斷用：把分隔字元換成看得見的符號 */
+    /** For diagnostics: replace the separator with a visible character */
     public static String visible(String s) {
-        return s == null ? "null" : s.replace(SearchText.SEPARATOR, '｜');
+        return s == null ? "null" : s.replace(SearchText.SEPARATOR, '|');
     }
 }

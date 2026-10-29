@@ -12,8 +12,8 @@ import dev.emi.emi.api.stack.EmiStack;
 import dev.iansun.crosslanguagesearch.DynamicTooltips;
 
 /**
- * EMI 用 bakedStacks.contains(stack) 決定走索引或即時比對。
- * 動態工具提示的物品回傳 false，讓它們每次搜尋都即時重算。
+ * EMI uses bakedStacks.contains(stack) to choose between the prebuilt index and live matching.
+ * Returning false for dynamic-tooltip items makes them re-evaluated on every search.
  */
 @Mixin(targets = "dev.emi.emi.search.EmiSearch$CompiledQuery", remap = false)
 public abstract class CompiledQueryMixin {

@@ -12,7 +12,7 @@ import dev.emi.emi.search.TooltipQuery;
 import dev.iansun.crosslanguagesearch.SearchText;
 
 /**
- * 不在索引裡的物品（例如帶有特殊資料的物品）由 EMI 即時比對，這裡也要用同一套正規化。
+ * Items not in the index (e.g. stacks with special data) are matched live by EMI; apply the same normalization there.
  */
 @Mixin(value = { NameQuery.class, TooltipQuery.class, ModQuery.class }, remap = false)
 public abstract class UnbakedMatchMixin {

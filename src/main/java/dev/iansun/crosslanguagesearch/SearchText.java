@@ -33,45 +33,45 @@ import net.minecraft.world.item.TooltipFlag;
 import dev.iansun.crosslanguagesearch.mixin.ClientLanguageAccessor;
 
 /**
- * 搜尋文字的正規化與英文版本產生。
+ * Search text normalization and generation of other-language variants.
  * <p>
- * 索引端與查詢端都必須經過同一個 {@link #fold(String)}，比對才會一致。
+ * Both the index side and the query side must go through the same {@link #fold(String)} for matches to line up.
  */
 public final class SearchText {
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    /** 串接「原文」與「英文版本」時使用的分隔字元，使用者不可能輸入，所以查詢不會跨越邊界。 */
+    /** Separator between the original text and its variants. Users cannot type it, so a query never matches across the boundary. */
     public static final char SEPARATOR = '\u0001';
 
     private static final String SECONDARY_LANGUAGE = "en_us";
 
-    /** JECh（PinIn）搜尋器不是執行緒安全的，所有呼叫共用這把鎖 */
+    /** JECh (PinIn) searchers are not thread-safe; all calls share this lock */
     public static final Object PININ_LOCK = new Object();
 
-    /** 與原版 TranslatableContents 相同的格式語法：%s、%1$s、%% */
+    /** Same format syntax as vanilla TranslatableContents: %s, %1$s, %% */
     private static final Pattern FORMAT = Pattern.compile("%(?:(\\d+)\\$)?([A-Za-z%]|$)");
 
     private static final int MAX_DEPTH = 16;
 
-    /** BMP 範圍的繁→簡對照表，0 代表不轉換 */
+    /** Traditional-to-Simplified table for the BMP; 0 means unchanged */
     private static final char[] T2S_BMP = new char[0x10000];
-    /** 超出 BMP 的少數字 */
+    /** The few characters outside the BMP */
     private static final Int2IntOpenHashMap T2S_SUPPLEMENTARY = new Int2IntOpenHashMap();
 
     private static volatile Language secondary;
-    /** 自己載入的目前語言表，不經過其他模組替換過的 Language.getInstance() */
+    /** Our own copy of the current language table, bypassing Language.getInstance() which other mods may replace */
     private static volatile Language primaryLang;
     private static volatile boolean loaded;
 
     /**
-     * 中英雙向反查。給只拿得到已翻譯字串、拿不到翻譯鍵的地方使用（RS、Reverie Foundry 目錄）。
+     * Two-way Chinese/English lookup, for places that only have translated strings and no translation keys (RS, the Reverie Foundry catalog).
      */
     private static volatile ReverseIndex reverse = ReverseIndex.EMPTY;
 
     private static final int CACHE_LIMIT = 200_000;
     private static final Map<String, String> FOLD_CACHE = new ConcurrentHashMap<>();
     private static final Map<String, String> PLAIN_CACHE = new ConcurrentHashMap<>();
-    /** ItemStack 沒有覆寫 equals，WeakHashMap 等同以實例為鍵，物品被回收時自動移除 */
+    /** ItemStack does not override equals, so this WeakHashMap is keyed by identity and entries vanish when stacks are collected */
     private static final Map<ItemStack, String> TOOLTIP_CACHE = Collections.synchronizedMap(new WeakHashMap<>());
 
     static {
@@ -96,7 +96,7 @@ public final class SearchText {
                 String key = line.substring(0, tab);
                 String value = line.substring(tab + 1);
                 int space = value.indexOf(' ');
-                if (space >= 0) value = value.substring(0, space); // 一繁對多簡時取第一個
+                if (space >= 0) value = value.substring(0, space); // take the first candidate when one maps to several
                 if (key.codePointCount(0, key.length()) != 1 || value.codePointCount(0, value.length()) != 1) continue;
                 int from = key.codePointAt(0);
                 int to = value.codePointAt(0);
@@ -112,7 +112,7 @@ public final class SearchText {
     }
 
     /**
-     * 正規化：去除格式碼、NFKC（全形→半形）、轉小寫、繁→簡。
+     * Normalization: strip formatting codes, NFKC (full-width to half-width), lowercase, Traditional to Simplified.
      */
     public static String fold(String s) {
         if (s == null || s.isEmpty()) return s;
@@ -142,7 +142,7 @@ public final class SearchText {
         return sb == null ? n : sb.toString();
     }
 
-    /** 帶快取的 {@link #fold(String)}，給每打一個字就重新比對全部項目的介面使用（RS、目錄）。 */
+    /** Cached {@link #fold(String)} for UIs that re-match every entry on each keystroke (RS, the catalog). */
     public static String foldCached(String s) {
         if (s == null || s.isEmpty()) return s;
         String cached = FOLD_CACHE.get(s);
@@ -154,8 +154,8 @@ public final class SearchText {
     }
 
     /**
-     * 「已翻譯字串是否包含查詢」的通用判斷：原文與英文反查結果任一包含即可。
-     * 兩邊都會經過 fold，所以繁簡、全半形都不影響。
+     * Generic "does this translated string contain the query" check: matches if either the original or its reverse lookup contains it.
+     * Both sides are folded, so Traditional/Simplified and full/half-width differences do not matter.
      */
     public static boolean plainContains(String text, String query) {
         if (text == null || query == null) return false;
@@ -165,8 +165,8 @@ public final class SearchText {
     }
 
     /**
-     * 對一段已翻譯的純文字，逐行查反查表，回傳已 fold 的另一種語言版本（查不到時為空字串）。
-     * 中→英、英→中都會查，所以畫面顯示英文的地方也能用中文搜。
+     * Looks up each line of already-translated plain text and returns the folded other-language version (empty if none).
+     * Works Chinese to English and English to Chinese, so text displayed in English can be searched in Chinese.
      */
     public static String plainSecondary(String text) {
         ReverseIndex index = reverse;
@@ -190,8 +190,8 @@ public final class SearchText {
     }
 
     /**
-     * 物品工具提示的英文版本（已 fold），直接從文字元件組出，比反查表準確。
-     * 必須在主執行緒呼叫；結果依 ItemStack 實例快取。
+     * English version of an item tooltip (folded), rendered straight from its components; more accurate than the reverse lookup.
+     * Must be called on the main thread; cached per ItemStack instance.
      */
     public static String tooltipSecondary(ItemStack stack) {
         Language lang = secondary;
@@ -202,12 +202,12 @@ public final class SearchText {
         try {
             Minecraft mc = Minecraft.getInstance();
             List<Component> lines = stack.getTooltipLines(Item.TooltipContext.of(mc.level), mc.player, TooltipFlag.Default.NORMAL);
-            for (int i = 1; i < lines.size(); i++) { // 第一行是名稱，名稱另外處理
+            for (int i = 1; i < lines.size(); i++) { // line 0 is the name, handled separately
                 if (!sb.isEmpty()) sb.append(SEPARATOR);
                 sb.append(render(lines.get(i), lang));
             }
         } catch (Throwable ignored) {
-            // 有些模組的工具提示在特定狀態下會拋錯，忽略即可
+            // Some mods throw from tooltips in certain states; ignore
         }
         String result = fold(sb.toString());
         TOOLTIP_CACHE.put(stack, result);
@@ -215,7 +215,7 @@ public final class SearchText {
     }
 
     private static void buildReverse(Minecraft mc, String selected, Language secondaryLang) {
-        // 不直接用 Language.getInstance()：模組包裡有其他模組會替換它，型別不一定是 ClientLanguage
+        // Not using Language.getInstance(): other mods may replace it, so it is not necessarily a ClientLanguage
         Language current = Language.getInstance();
         Map<String, String> primary = Map.of();
         Language loaded = ClientLanguage.loadFrom(mc.getResourceManager(), List.of(SECONDARY_LANGUAGE, selected), current.isDefaultRightToLeft());
@@ -244,14 +244,14 @@ public final class SearchText {
         return sb.toString();
     }
 
-    /** 語言表還沒載入過時才載入（正常情況下資源載入時已經載好） */
+    /** Loads the language tables only if they were never loaded (normally done on resource reload) */
     public static void ensureLoaded() {
         if (!loaded) reloadSecondaryLanguage();
     }
 
     /**
-     * 資源重新載入時呼叫（啟動、切換語言、F3+T），重新載入目前語言與第二語言（英文）的語言表。
-     * 目前語言已經是英文時不載入，避免重複索引。
+     * Called on resource reload (startup, language change, F3+T) to reload the current and secondary (English) language tables.
+     * Skipped when the current language is already English, to avoid duplicate indexing.
      */
     public static void reloadSecondaryLanguage() {
         loaded = true;
@@ -279,10 +279,10 @@ public final class SearchText {
     }
 
     /**
-     * 回傳「原文」加上其他語言版本（若不同）。供索引使用，之後還會再經過 {@link #fold(String)}。
+     * Returns the original text plus its other-language versions (when different). Used for indexing; the result is folded afterwards with {@link #fold(String)}.
      * <p>
-     * 除了英文，也用自己載入的目前語言表重新組一次：像 Untranslated Items 這類模組會讓物品名稱
-     * 顯示英文，畫面上的原文就不是中文，這時還是要能用中文搜到。
+     * Besides English, the text is also re-rendered with our own copy of the current language: mods such as Untranslated Items
+     * display item names in English, so the on-screen text is not Chinese, yet it should still be searchable in Chinese.
      */
     public static String withSecondary(Component component, String original) {
         Language en = secondary;
@@ -300,7 +300,7 @@ public final class SearchText {
         }
     }
 
-    /** 用指定語言表重新組出元件的文字，不改動遊戲目前的語言。 */
+    /** Renders a component's text with the given language table without touching the game's current language. */
     static String render(Component component, Language lang) {
         StringBuilder sb = new StringBuilder();
         append(component, lang, sb, 0);
