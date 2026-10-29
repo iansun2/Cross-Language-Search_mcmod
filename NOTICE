@@ -1,0 +1,10 @@
+Cross-Language-Search
+Copyright (c) 2026 iansun2. Licensed under the MIT License (see LICENSE).
+
+This project bundles third-party data:
+
+- src/main/resources/crosslanguagesearch/TSCharacters.txt
+  Traditional-to-Simplified Chinese character table from OpenCC
+  (https://github.com/BYVoid/OpenCC), licensed under the Apache License 2.0.
+  The full license text is included as
+  src/main/resources/crosslanguagesearch/OPENCC_LICENSE.txt.

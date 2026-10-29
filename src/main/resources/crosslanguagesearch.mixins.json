@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.iansun.crosslanguagesearch.mixin",
+  "plugin": "dev.iansun.crosslanguagesearch.mixin.CrossLanguageSearchMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "ClientLanguageAccessor",
+    "CompiledQueryMixin",
+    "EmiSearchMixin",
+    "QueryDebugMixin",
+    "QueryInitMixin",
+    "UnbakedMatchMixin",
+    "UnbakedTextMixin",
+    "compat.EnchLibraryScreenMixin",
+    "compat.JechFakeArrayMixin",
+    "compat.ReverieSearchUtilsMixin",
+    "compat.RsGridQueryParserMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

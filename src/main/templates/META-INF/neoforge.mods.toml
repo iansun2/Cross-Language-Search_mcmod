@@ -1,0 +1,70 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+issueTrackerURL="https://github.com/iansun2/Cross-Language-Search_mcmod/issues"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="iansun2"
+displayURL="https://github.com/iansun2/Cross-Language-Search_mcmod"
+description='''
+Cross-language search for EMI, Refined Storage and more: search Chinese names and tooltips in English, and Traditional / Simplified Chinese interchangeably.
+跨語言搜尋：可用英文搜尋中文名稱與工具提示，繁體、簡體中文互通。
+'''
+# 純客戶端模組，不影響伺服器連線
+displayTest="IGNORE_ALL_VERSION"
+
+[[mixins]]
+config="${mod_id}.mixins.json"
+
+[[dependencies.${mod_id}]]
+    modId="neoforge"
+    type="required"
+    versionRange="[${neo_version},)"
+    ordering="NONE"
+    side="CLIENT"
+
+[[dependencies.${mod_id}]]
+    modId="minecraft"
+    type="required"
+    versionRange="${minecraft_version_range}"
+    ordering="NONE"
+    side="CLIENT"
+
+# 以下全部是選用：有安裝才啟用對應功能，都沒裝時本模組不做任何事
+[[dependencies.${mod_id}]]
+    modId="emi"
+    type="optional"
+    versionRange="[1.1.24,)"
+    ordering="AFTER"
+    side="CLIENT"
+
+[[dependencies.${mod_id}]]
+    modId="refinedstorage"
+    type="optional"
+    versionRange="[2,)"
+    ordering="AFTER"
+    side="CLIENT"
+
+[[dependencies.${mod_id}]]
+    modId="apothic_enchanting"
+    type="optional"
+    versionRange="[1.6,)"
+    ordering="AFTER"
+    side="CLIENT"
+
+[[dependencies.${mod_id}]]
+    modId="reveriefoundry"
+    type="optional"
+    versionRange="[2.3,)"
+    ordering="AFTER"
+    side="CLIENT"
+
+[[dependencies.${mod_id}]]
+    modId="jecharacters"
+    type="optional"
+    versionRange="[4,)"
+    ordering="AFTER"
+    side="CLIENT"
